@@ -1,0 +1,167 @@
+---
+title: "Muestreo de poblaciones y estimación"
+subtitle: "AFDMD-111 Estadística"
+author: "Armando Patricio Piña Canul"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    cards: false
+---
+
+```{r setup, include=FALSE}
+#library(highcharter)
+library(TeachingSampling)
+# invalidate cache when the tufte version changes
+```
+
+
+
+
+# Introducción
+
+En estadística, los conceptos de población y muestra son sumamente importantes. Población se refiere al conjunto de todos los sujetos de interés, por ejemplo, al estudiar la edad de los estudiantes de la UQRoo Cancún, la población son todos los estudiantes del campus. Muestra, por otro lado, se refiere a un subconjunto de la población. Por ejemplo, los estudiantes que se encuentran en horario de 07:00-09:00 am, los estudiantes que se encuentran en la biblioteca, etc. Usualmente es muy común estudiar a las muestras y entonces para tomar muestras se consideran dos tipos de muestreo.
+
+- Muestreo aleatorio.
+- Muestreo no aleatorio.
+
+
+# Muestreo aleatorio
+
+Existen varios tipos de muestreo aleatorio, entre los cuales encontramos:
+
+- Muestreo aleatorio simple.
+- Muestreo sistemático.
+- Muestreo estratificado.
+- Muestreo de Poisson.
+
+## Muestreo aleatorio simple.
+
+El muestreo se puede realizar mediante el comando `sample`. Por ejemplo una muestra de tamaño $50$ de las primeras $15$ letras minúsculas del abecedario se realiza y grafica como:
+
+```{r sampSR}
+m <- as.factor(sample(letters[1:15], 50, replace=T))
+plot(m, col = "#6a994e")
+```
+
+Nótese que el comando `sample` tiene como parámetros `replace` y `prob`. 
+
+1. ¿Qué sucede si `replace=FALSE` en código anterior?.
+
+Si replace se establece en FALSE en el código anterior, significa que no se permitirá el reemplazo de elementos en la muestra. 
+En este caso, cada letra del conjunto letters[1:15] se seleccionará exactamente una vez en la muestra de tamaño 50, y no se permitirá seleccionar la misma letra más de una vez. Esto garantiza que todas las letras en la muestra sean únicas.
+
+Por lo que hubo que cambiar el tamaño de la muestra al salir un error.
+```{r}
+m <- as.factor(sample(letters[1:15], 15, replace=F))
+plot(m, col = "#6a994e")
+```
+
+
+2. ¿Cuál es la diferencia entre `sample(letters[1:10],10, replace=T)` y `sample(letters[1:10],10)`?
+
+En el primer caso (sample(letters[1:10], 10, replace = T)), se permite el reemplazo en la selección de elementos, lo que significa que un mismo elemento puede ser seleccionado más de una vez en la muestra. En cambio, en el segundo caso (sample(letters[1:10], 10)), no se permite el reemplazo, lo que implica que cada elemento se selecciona solo una vez en la muestra.
+
+Primer caso:
+```{r}
+m <- as.factor(sample(letters[1:10],10, replace=T))
+plot(m, col = "#6a994e")
+```
+
+
+Segundo Caso:
+```{r}
+m <- as.factor(sample(letters[1:10],10))
+plot(m, col = "#6a994e")
+```
+
+
+
+3. ¿Y entre `sample(letters[1:6], 10, prob=c(0.5,0.1,0.1,0.1,0.1,0.1), replace = T)` y `sample(letters[1:6], 10, replace=T)`?
+
+En el primer caso `(sample(letters[1:6], 10,prob=c(0.5,0.1,0.1,0.1,0.1,0.1), replace = T))`, se especifican probabilidades de selección para cada elemento del vector. En este ejemplo, la probabilidad de seleccionar el primer elemento es 0.5, mientras que para los elementos restantes es 0.1 cada uno. 
+En el segundo caso `(sample(letters[1:6], 10, replace = T))`, se realiza un muestreo con reemplazo, pero sin especificar probabilidades. En este caso, cada elemento tiene la misma probabilidad de ser seleccionado.
+
+Se muestra a continuación
+```{r}
+m <- as.factor(sample(letters[1:6], 10, prob=c(0.5,0.1,0.1,0.1,0.1,0.1), replace = T))
+plot(m, col = "#6a994e")
+```
+```{r}
+m <- as.factor(sample(letters[1:6], 10, replace=T))
+plot(m, col = "#6a994e")
+```
+
+
+
+
+## Muestreo sistemático
+
+El muestreo sistemático funciona comenzando por un punto inicial aleatorio y de allá avanzando sistemáticamente un número fijo de pasos $a$ hasta llegar a $N$. Para ello se utiliza el comando `S.Sy` del paquete `TeachingSampling` (en caso de no tener instalado el paquete instalarlo con `install.packages("TeachingSampligng")`). Ahora mostraremos el proceso de muestrear las misma letras del abecedario.
+
+
+```{r muesSys}
+índices <- S.SY(26,4)
+letters[índices]
+# Los índices que se tomaron son:
+índices # Nótese que se inició aleatoriamente con 4 y de allá avanzo 4 unidades.
+```
+- Realice una muestra sistemática de la variable del dataset `starwars` (puede cargarlo con `data(starwars)`) y calcule la media de la altura (`height`) y la masa (`mass`).
+```{r}
+library(TeachingSampling)
+data(starwars)
+set.seed(123)
+indices_sistematico <- S.SY(N = nrow(starwars), a = 4)
+muestra_sistematica <- starwars[indices_sistematico, ]
+media_altura_sistematica <- mean(muestra_sistematica$height, na.rm = TRUE)
+media_masa_sistematica <- mean(muestra_sistematica$mass, na.rm = TRUE)
+cat("Muestreo Sistemático:\n")
+cat("Media de Altura:", media_altura_sistematica, "\n")
+cat("Media de Masa:", media_masa_sistematica, "\n")
+```
+
+
+- Realice un muestreo aleatorio simple usando sin reemplazo `sample` y calcule la media de la altura (`height`) y la masa (`mass`).
+```{r}
+muestra_aleatoria <- starwars[sample(nrow(starwars), size = 30, replace = FALSE), ]
+media_altura_aleatoria <- mean(muestra_aleatoria$height, na.rm = TRUE)
+media_masa_aleatoria <- mean(muestra_aleatoria$mass, na.rm = TRUE)
+cat("\nMuestreo Aleatorio Simple:\n")
+cat("Media de Altura:", media_altura_aleatoria, "\n")
+cat("Media de Masa:", media_masa_aleatoria, "\n")
+```
+
+
+## Muestreo estratificado
+
+Investigue el concepto de muestreo estratificado y realice un ejemplo con el comando `S.STPPS`. Nota: es muy importante crear un estrato o subgrupo.
+
+\
+El muestreo estratificado es una técnica en la que la población se divide en subgrupos homogéneos llamados estratos, y luego se realiza un muestreo aleatorio simple dentro de cada estrato. Esto se hace para asegurar que cada estrato esté representado en la muestra final, lo que puede ser importante cuando hay variabilidad significativa entre los estratos
+
+Supongamos que tenemos un conjunto de datos llamado muestra_estratificada con tres estratos diferentes ("A", "B", "C"), y queremos realizar un muestreo estratificado con probabilidad proporcional al tamaño del estrato.
+\
+
+
+Primero, generemos un conjunto de datos de ejemplo:
+
+```{r}
+if (!requireNamespace("dplyr", quietly = TRUE)) {
+  install.packages("dplyr")
+}
+library(dplyr)
+set.seed(123)
+muestra_estratificada <- data.frame(
+  Estrato = rep(c("A", "B", "C"), each = 50),
+  Variable = rnorm(150)
+)
+muestra_estratificada$Estrato <- as.factor(muestra_estratificada$Estrato)
+tamanos_estratos <- list("A" = 50, "B" = 50, "C" = 50)
+estratos <- muestra_estratificada %>%
+  group_split(Estrato)
+muestra_resultante <- lapply(estratos, function(estrato) {
+  sample_n(estrato, size = tamanos_estratos[[unique(estrato$Estrato)]], replace = FALSE)
+}) %>%
+  bind_rows()
+head(muestra_resultante)
+```
